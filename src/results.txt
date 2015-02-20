@@ -1,0 +1,65 @@
+VERSAO ORIGINAL
+****************************************************************************
+This program uses 40 inputs (total)
+This program uses 17 n inputs for case 1
+This program uses 8 n inputs for case 2
+This program uses 15 n inputs for case 3
+
+The number of possibilities tested in case 3 was: 32752
+The total time for the execution of algorithms and printing is: 174815 ms!!
+The total time for the execution of algorithms and printing is: 174 s!!
+The total time for the execution of algorithms and printing is: 2 min!!
+****************************************************************************
+
+
+VERSAO OTIMIZADA
+****************************************************************************
+This program uses 40 inputs (total)
+This program uses 17 n inputs for case 1
+This program uses 8 n inputs for case 2
+This program uses 15 n inputs for case 3
+
+The number of possibilities tested in case 3 was: 32752
+The total time for the execution of algorithms and printing is: 112983 ms!!
+The total time for the execution of algorithms and printing is: 112 s!!
+The total time for the execution of algorithms and printing is: 1 min!!
+****************************************************************************
+
+****************************************************************************
+This program uses 35 inputs (total)
+This program uses 17 n inputs for case 1
+This program uses 8 n inputs for case 2
+This program uses 10 n inputs for case 3
+
+The number of possibilities tested in case 3 was: 1013
+The total time for the execution of algorithms and printing is: 2156 ms!!
+The total time for the execution of algorithms and printing is: 2 s!!
+The total time for the execution of algorithms and printing is: 0 min!!
+****************************************************************************
+
+
+****************************************************************************
+This program uses 30 inputs (total)
+This program uses 17 n inputs for case 1
+This program uses 8 n inputs for case 2
+This program uses 5 n inputs for case 3
+
+The number of possibilities tested in case 3 was: 26
+The total time for the execution of algorithms and printing is: 235 ms!!
+The total time for the execution of algorithms and printing is: 0 s!!
+The total time for the execution of algorithms and printing is: 0 min!!
+****************************************************************************
+
+****************************************************************************
+This program uses 29 inputs (total)
+This program uses 17 n inputs for case 1
+This program uses 8 n inputs for case 2
+This program uses 4 n inputs for case 3
+
+The number of possibilities tested in case 3 was: 11
+The total time for the execution of algorithms and printing is: 161 ms!!
+The total time for the execution of algorithms and printing is: 0 s!!
+The total time for the execution of algorithms and printing is: 0 min!!
+****************************************************************************
+
+
