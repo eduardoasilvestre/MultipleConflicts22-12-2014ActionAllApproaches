@@ -100,7 +100,6 @@ public class Norm implements Serializable {
 		builder.append(dc);
 		/*
 	 	this code is commented for test effects (easier visualization)
-	 	ESTE CÓDIGO ESTÁ COMENTADO PARA EFEITO DE TESTES E FACILITAR A VISUALIZAÇÃO
 	 	
 		String c = context == null ? "Context: NULL | " : "Context: " + context.getName() + " | ";
 		builder.append(c);
@@ -109,7 +108,7 @@ public class Norm implements Serializable {
 		builder.append(e);
 		*/
 		
-		String a = behavior == null ? "Behavior: NULL | " : "Behavior: name = " + behavior.getName() + " - object = " + behavior.getObject() + " | ";
+		String a = behavior == null ? "Behavior: NULL | " : "Behavior: NAME = " + behavior.getName() + " - OBJECT = " + behavior.getObject() + " | ";
 		/* the code below is used to print the parameters of the behavior
 		 * */
 		builder.append(a);

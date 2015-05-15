@@ -1,80 +1,152 @@
 package util;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
 public class SetUtil {
+
+	
 	// http://sysgears.com/articles/immutable-collections-java-0/
 	
+	/************************************************************************************/
 	//EXAMPLE 1
 	public final static Set<String> GARMENT_SET_ELEMENTS;
 	static {
-		Set<String> gt = new TreeSet<String>();
-		gt.add("pant");
-		gt.add("shirt");
-		GARMENT_SET_ELEMENTS = Collections.unmodifiableSet(gt);
+		Set<String> s = new TreeSet<String>();
+		s.add("pant");
+		s.add("shirt");
+		GARMENT_SET_ELEMENTS = Collections.unmodifiableSet(s);
 
 	}
 	public final static Set<String> COLOR_ELEMENTS;
 	static {
-		Set<String> ct = new TreeSet<String>();
-		ct.add("white");
-		ct.add("black");
-		ct.add("blue");
-		ct.add("red");
-		ct.add("lilac");
-		COLOR_ELEMENTS = Collections.unmodifiableSet(ct);
+		Set<String> s = new TreeSet<String>();
+		s.add("white");
+		s.add("black");
+		s.add("blue");
+		s.add("red");
+		s.add("lilac");
+		COLOR_ELEMENTS = Collections.unmodifiableSet(s);
 	}
 	public final static Set<String> IRONING_ELEMENTS;
 	static {
-		Set<String> it = new TreeSet<String>();
-		it.add("ironing");
-		it.add("crumpled");
-		IRONING_ELEMENTS = Collections.unmodifiableSet(it);
+		Set<String> s = new TreeSet<String>();
+		s.add("ironing");
+		s.add("burned");
+		s.add("crumpled");
+		IRONING_ELEMENTS = Collections.unmodifiableSet(s);
 	}
 	public final static Set<String> PICTURE_ELEMENTS;
 	static {
-		Set<String> pt = new TreeSet<String>();
-		pt.add("horizontal");
-		pt.add("vertical");
-		pt.add("smooth");
-		pt.add("gust");
-		PICTURE_ELEMENTS = Collections.unmodifiableSet(pt);
+		Set<String> s = new TreeSet<String>();
+		s.add("horizontal");
+		s.add("vertical");
+		s.add("smooth");
+		s.add("gust");
+		PICTURE_ELEMENTS = Collections.unmodifiableSet(s);
 	}
-	
+	/************************************************************************************/	
 	//EXAMPLE 2
 	public final static Set<String> G_SET_ELEMENTS;
 	static {
-		Set<String> g = new TreeSet<String>();
-		g.add("whistle");
-		g.add("scolding");
-		g.add("shoes");
-		g.add("stocking");
-		G_SET_ELEMENTS = Collections.unmodifiableSet(g);
+		Set<String> s = new TreeSet<String>();
+		s.add("whistle");
+		s.add("scolding");
+		s.add("shoes");
+		s.add("stocking");
+		G_SET_ELEMENTS = Collections.unmodifiableSet(s);
 
 	}
 	public final static Set<String> C_ELEMENTS;
 	static {
-		Set<String> c = new TreeSet<String>();
-		c.add("white");
-		c.add("black");
-		c.add("blue");
-		c.add("red");
-		c.add("lilac");
-		C_ELEMENTS = Collections.unmodifiableSet(c);
+		Set<String> s = new TreeSet<String>();
+		s.add("white");
+		s.add("black");
+		s.add("blue");
+		s.add("red");
+		s.add("lilac");
+		C_ELEMENTS = Collections.unmodifiableSet(s);
 	}
 	public final static Set<String> BODY_ELEMENTS;
 	static {
-		Set<String> i = new TreeSet<String>();
-		i.add("mouth");
-		i.add("pocket");
-		i.add("foot");
-		BODY_ELEMENTS = Collections.unmodifiableSet(i);
+		Set<String> s = new TreeSet<String>();
+		s.add("mouth");
+		s.add("pocket");
+		s.add("foot");
+		BODY_ELEMENTS = Collections.unmodifiableSet(s);
+	}
+	
+	/************************************************************************************/
+	//EXEMPLE uncategorized
+	public final static Set<String> WITH_BALLS;
+	static {
+		Set<String> s = new TreeSet<String>();
+		s.add("small_balls");
+		s.add("large_balls");
+		s.add("one_ball");
+		WITH_BALLS = Collections.unmodifiableSet(s);
+	}
+	
+	/************************************************************************************/
+
+	public static Map<String,Set<String>> getMapOfParameters() {
+		Map<String,Set<String>> mapOfParameters = new HashMap<String, Set<String>>();
+		mapOfParameters.put("garment", SetUtil.GARMENT_SET_ELEMENTS);
+		mapOfParameters.put("color", SetUtil.COLOR_ELEMENTS);
+		mapOfParameters.put("ironingtype", SetUtil.IRONING_ELEMENTS);
+		mapOfParameters.put("picture", SetUtil.PICTURE_ELEMENTS);
+		
+		mapOfParameters.put("g", SetUtil.G_SET_ELEMENTS);
+		mapOfParameters.put("c", SetUtil.C_ELEMENTS);
+		mapOfParameters.put("bodypart", SetUtil.BODY_ELEMENTS);
+		
+		return mapOfParameters;
+	}
+	
+	/************************************************************************************/
+	public final static String CLOTHES = "clothes";
+	public final static String COLORFUL = "colorful";
+	public final static String IRONING_STATE = "ironing_state";
+	public final static String PICTURED = "pictured";
+	public final static String WITHBALLS = "withballs";
+	
+	/************************************************************************************/
+	
+	public final static Map<String, Set<String>> MAP_SETS;
+	static {
+		Map<String, Set<String>> ms = new HashMap<String, Set<String>>();
+		ms.put(CLOTHES, GARMENT_SET_ELEMENTS);
+		ms.put(COLORFUL, COLOR_ELEMENTS);
+		ms.put(IRONING_STATE, IRONING_ELEMENTS);
+		ms.put(PICTURED, PICTURE_ELEMENTS);
+		ms.put(WITHBALLS, WITH_BALLS);
+		MAP_SETS = Collections.unmodifiableMap(ms);
+	}
+	
+	public static String getParamValue(String value) {
+		if (CLOTHES.equals(value)) {
+			return "garment";				
+		} else if (COLORFUL.equals(value)) {
+			return "color";
+		} else if (IRONING_STATE.equals(value)) {
+			return "ironingtype";
+		} else if (PICTURED.equals(value)) {
+			return "picture";
+		} else if (WITHBALLS.equals(value)) {
+			return "withball";
+		}
+		return null;
 	}
 
-
+	
+	/************************************************************************************/
+	public final static String EQUAL = "A";
+	public final static String DIFF = "!A";
+	/************************************************************************************/
+	
 	public static <T> Set<T> union(Set<T> setA, Set<T> setB) {
 		Set<T> tmp = new TreeSet<T>(setA);
 		tmp.addAll(setB);

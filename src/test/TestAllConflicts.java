@@ -1,21 +1,14 @@
 package test;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
 import src.BehaviorMultipleParameters;
-import src.ConflictCheckerActionApproach1;
-import src.ConflictCheckerActionApproach2;
-import src.ConflictCheckerActionApproach3;
-import src.ConflictCheckerActionApproach4;
+import src.ConflictChecker;
 import src.Constraint;
 import src.ConstraintDate;
 import src.ConstraintType;
@@ -25,108 +18,80 @@ import src.DeonticConcept;
 import src.Entity;
 import src.EntityType;
 import src.Norm;
-import util.Chronometer;
 import util.SetUtil;
 
 public class TestAllConflicts {
 
 	public static void main(String[] args) {
+		
+		//This method is used for analysis exclusively the relationship among the norms
+		//List<Norm> norms = buildSomeNorms2();
+		
+		//This method is used for analysis the relationship and the conflicts with norms of the same case
 		List<Norm> norms = buildSomeNorms();
-		Map<String,List<Norm>> map = classifyNorms(norms);
-		
-		Chronometer.start();
-		
-		List<Norm> case1 = map.get("case1");
-		System.out.println("The following norms are in conflict in case 1:");
-		if (case1 != null && !case1.isEmpty()) {
-			ConflictCheckerActionApproach1 approach1 = new ConflictCheckerActionApproach1();
-			approach1.verifyConflicts(case1);
-		}
-		System.out.println("\n");
-		
-		List<Norm> case2 = map.get("case2");
-		System.out.println("The following norms are in conflict in case 2:");
-		if (case2 != null && !case2.isEmpty()) {
-			ConflictCheckerActionApproach2 approach2 = new ConflictCheckerActionApproach2();
-			approach2.verifyConflicts(case2);
-		}
-		System.out.println("\n");
-		
-		List<Norm> case3 = map.get("case3");
-		System.out.println("The following norms are in conflict in case 3:");
-		if (case3 != null && !case3.isEmpty()) {
-			ConflictCheckerActionApproach3 approach3 = new ConflictCheckerActionApproach3();
-			approach3.verifyConflicts(case3);
-		}
-		System.out.println("\n");
-		
-		List<Norm> case4 = map.get("case4");
-		System.out.println("The following norms are in conflict in case 4:");
-		if (case4 != null && !case4.isEmpty()) {
-			ConflictCheckerActionApproach4 approach4 = new ConflictCheckerActionApproach4();
-			approach4.verifyConflicts(case4);
-		}
-		System.out.println("\n");
-		
-		Chronometer.stop();
-		
-		long milliseconds = Chronometer.elapsedTime();
-		long seconds = TimeUnit.MILLISECONDS.toSeconds(milliseconds);
-		long minutes = TimeUnit.MILLISECONDS.toMinutes(milliseconds);
-		
-		int sumCase1 = (case1 != null) ? case1.size() : 0; 
-		int sumCase2 = (case2 != null) ? case2.size() : 0; 
-		int sumCase3 = (case3 != null) ? case3.size() : 0;
-		int sumCase4 = (case4 != null) ? case4.size() : 0;
-		int sumTotal = sumCase1 + sumCase2 + sumCase3 + sumCase4;
-		
-		System.out.println("****************************************************************************");
-		System.out.println("This program uses " + sumTotal + " inputs (total)");
-		System.out.println("This program uses " + sumCase1 + " n inputs for case 1");
-		System.out.println("This program uses " + sumCase2 + " n inputs for case 2");
-		System.out.println("This program uses " + sumCase3 + " n inputs for case 3");
-		System.out.println("This program uses " + sumCase4 + " n inputs for case 4\n");
-		System.out.println("The number of possibilities tested in case 4 was: "+ ConflictCheckerActionApproach4.counter);
-		System.out.println("The total time for the execution of algorithms and printing is: " + milliseconds + " ms!!"); 
-		System.out.println("The total time for the execution of algorithms and printing is: " + seconds + " s!!"); 
-		System.out.println("The total time for the execution of algorithms and printing is: " + minutes + " min!!"); 
-		System.out.println("****************************************************************************");
+		System.out.println("*****************************************************");
+		System.out.println("The total of norms was examined was " + norms.size() + ".");
+		System.out.println("*****************************************************");
+		ConflictChecker checker = new ConflictChecker();
+		List<List<Norm>> conflicts = checker.conflictChecker(norms);
+		printNorms(conflicts);
 	}
 	
-	private static Map<String,List<Norm>> classifyNorms(List<Norm> norms) {
-		Map<String,List<Norm>> map = new HashMap<String, List<Norm>>();
-		List<Norm> case1 = new ArrayList<Norm>();
-		List<Norm> case2 = new ArrayList<Norm>();
-		List<Norm> case3 = new ArrayList<Norm>();
-		List<Norm> case4 = new ArrayList<Norm>();
-
-		for (Norm norm : norms) {
-			BehaviorMultipleParameters b = norm.getBehavior();
-			if (b.getObject() != null) {
-				case4.add(norm);
-			} else if (b.getMap().isEmpty()) {
-				case1.add(norm);
-			} else {
-				Map<String, Set<String>> p = b.getMap();
-				for (Map.Entry<String,Set<String>> entry : p.entrySet()) {
-					String key = entry.getKey();
-			  		Set<String> x = norm.getBehavior().getElements(key);
-			  		if(x == null || SetUtil.isEmpty(x) || x.contains(null)) {
-			  			case2.add(norm);
-			  		} else {
-			  			case3.add(norm);
-			  		}
-			  		break;
-				}
+	public static void printNorms(List<List<Norm>> norms) {
+		int sum = 0;
+		for(List<Norm> list: norms) {
+			for(Norm norm: list) {
+				System.out.println(norm.toString());
+			}
+			System.out.println();
+			sum++;
+		}
+		System.out.println("*****************************************************");
+		System.out.println("The total of conflicts found was " + sum + ".");
+		System.out.println("*****************************************************");
+	}
+	
+	/*public static void printNorms(List<List<Norm>> norms) {
+		int[] counter = new int[norms.size()];
+		
+		for(List<Norm> list: norms) {
+			for(Norm norm: list) {
+				System.out.println(norm.toString());
+			}
+			System.out.println();
+			counter[list.size()]++;
+		}
+		System.out.println("\n");
+		int sum = 0;
+		for (int i = 0; i < counter.length; i++) {
+			if (counter[i] != 0) {
+				sum+=counter[i];
+				System.out.println("O total de conflitos entre " + i + " normas foi de " + counter[i] + ".");
 			}
 		}
-		map.put("case1", case1);
-		map.put("case2", case2);
-		map.put("case3", case3);
-		map.put("case4", case4);
+		System.out.println("\nO total de conflitos encontrados foi " + sum + ".");
+	}*/
+	
+	/*public static void printNorms(List<List<Norm>> norms) {
+		int[] counter = new int[norms.size()];
 		
-		return map;
-	}
+		for(List<Norm> list: norms) {
+			for(Norm norm: list) {
+				System.out.println(norm.toString());
+			}
+			System.out.println();
+			counter[list.size()]++;
+		}
+		System.out.println("\n");
+		int sum = 0;
+		for (int i = 0; i < counter.length; i++) {
+			if (counter[i] != 0) {
+				sum+=counter[i];
+				System.out.println("O total de conflitos entre " + i + " normas foi de " + counter[i] + ".");
+			}
+		}
+		System.out.println("\nO total de conflitos encontrados foi " + sum + ".");
+	}*/
 	
 	private static List<Norm> buildSomeNorms() {
 		List<Norm> normSet = new ArrayList<>();
@@ -271,16 +236,14 @@ public class TestAllConflicts {
 		Norm norm17 = new Norm(17,DeonticConcept.PERMISSION, context17, entity17, action17, aConstraint17, dConstraint17);
 		normSet.add(norm17);
 		
+		
 		/************************************************************************************/
 		//TODO case2
 		/************************************************************************************/
 
 		Context context101 = new Context("home", ContextType.ORGANIZATION);
 		Entity entity101 = new Entity ("person", EntityType.ROLE);
-		BehaviorMultipleParameters action101 = new BehaviorMultipleParameters("attend");
-		action101.addElement("computer_science",null);
-		action101.addElement("math",null);
-		action101.addElement("physics", null);
+		BehaviorMultipleParameters action101 = new BehaviorMultipleParameters("dress", "shirt");
 		Constraint aConstraint101 = null; 
 		Constraint dConstraint101 = null; 
 		Norm norm101 = new Norm(101, DeonticConcept.PERMISSION, context101, entity101, action101, aConstraint101, dConstraint101);
@@ -288,10 +251,7 @@ public class TestAllConflicts {
 		
 		Context context102 = new Context("home", ContextType.ORGANIZATION);
 		Entity entity102 = new Entity ("person", EntityType.ROLE);
-		BehaviorMultipleParameters action102 = new BehaviorMultipleParameters("attend");
-		action102.addElement("medicine",null);
-		action102.addElement("nursing",null);
-		action102.addElement("odontology", null);
+		BehaviorMultipleParameters action102 = new BehaviorMultipleParameters("dress", "shirt");
 		Constraint aConstraint102 = null; 
 		Constraint dConstraint102 = null; 
 		Norm norm102 = new Norm(102, DeonticConcept.PROHIBITION, context102, entity102, action102, aConstraint102, dConstraint102);
@@ -299,10 +259,7 @@ public class TestAllConflicts {
 		
 		Context context103 = new Context("home", ContextType.ORGANIZATION);
 		Entity entity103 = new Entity ("person", EntityType.ROLE);
-		BehaviorMultipleParameters action103 = new BehaviorMultipleParameters("attend");
-		action103.addElement("computer_science", null);
-		action103.addElement("math", null);
-		action103.addElement("physics", null);
+		BehaviorMultipleParameters action103 = new BehaviorMultipleParameters("dress", "pant");
 		Constraint aConstraint103 = null; 
 		Constraint dConstraint103 = null; 
 		Norm norm103 = new Norm(103, DeonticConcept.OBLIGATION, context103, entity103, action103, aConstraint103, dConstraint103);
@@ -310,10 +267,7 @@ public class TestAllConflicts {
 				
 		Context context104 = new Context("home", ContextType.ORGANIZATION);
 		Entity entity104 = new Entity ("person", EntityType.ROLE);
-		BehaviorMultipleParameters action104 = new BehaviorMultipleParameters("attend");
-		action104.addElement("medicine",null);
-		action104.addElement("physics",null);
-		action104.addElement("odontolty", null);
+		BehaviorMultipleParameters action104 = new BehaviorMultipleParameters("dress", "pant");
 		Constraint aConstraint104 = null; 
 		Constraint dConstraint104 = null; 
 		Norm norm104 = new Norm(104, DeonticConcept.PROHIBITION, context104, entity104, action104, aConstraint104, dConstraint104);
@@ -321,11 +275,7 @@ public class TestAllConflicts {
 		
 		Context context105 = new Context("home", ContextType.ORGANIZATION);
 		Entity entity105 = new Entity ("person", EntityType.ROLE);
-		BehaviorMultipleParameters action105 = new BehaviorMultipleParameters("eat");
-		action105.addElement("potato",null);
-		action105.addElement("biscuit",null);
-		action105.addElement("rice", null);
-		action105.addElement("juice", null);
+		BehaviorMultipleParameters action105 = new BehaviorMultipleParameters("dress", "gown");
 		Constraint aConstraint105 = null; 
 		Constraint dConstraint105 = null; 
 		Norm norm105 = new Norm(105, DeonticConcept.PERMISSION, context105, entity105, action105, aConstraint105, dConstraint105);
@@ -333,11 +283,7 @@ public class TestAllConflicts {
 		
 		Context context106 = new Context("home", ContextType.ORGANIZATION);
 		Entity entity106 = new Entity ("person", EntityType.ROLE);
-		BehaviorMultipleParameters action106 = new BehaviorMultipleParameters("eat");
-		action106.addElement("avocado",null);
-		action106.addElement("crackling",null);
-		action106.addElement("olive_oil",null);
-		action106.addElement("soda", null);
+		BehaviorMultipleParameters action106 = new BehaviorMultipleParameters("dress", "gown");
 		Constraint aConstraint106 = null; 
 		Constraint dConstraint106 = null; 
 		Norm norm106 = new Norm(106, DeonticConcept.PROHIBITION, context106, entity106, action106, aConstraint106, dConstraint106);
@@ -345,36 +291,21 @@ public class TestAllConflicts {
 		
 		Context context107 = new Context("home", ContextType.ORGANIZATION);
 		Entity entity107 = new Entity ("person", EntityType.ROLE);
-		BehaviorMultipleParameters action107 = new BehaviorMultipleParameters("eat");
-		action107.addElement("potato", null);
-		action107.addElement("avocado", null);
-		action107.addElement("chicken", null);
+		BehaviorMultipleParameters action107 = new BehaviorMultipleParameters("dress", "gown");
 		Constraint aConstraint107 = null; 
 		Constraint dConstraint107 = null; 
 		Norm norm107 = new Norm(107, DeonticConcept.OBLIGATION, context107, entity107, action107, aConstraint107, dConstraint107);
 		normSet.add(norm107);
-				
-		Context context108 = new Context("home", ContextType.ORGANIZATION);
-		Entity entity108 = new Entity ("person", EntityType.ROLE);
-		BehaviorMultipleParameters action108 = new BehaviorMultipleParameters("eat");
-		action108.addElement("biscuit",null);
-		action108.addElement("crackling",null);
-		action108.addElement("soy", null);
-		Constraint aConstraint108 = null; 
-		Constraint dConstraint108 = null; 
-		Norm norm108 = new Norm(108, DeonticConcept.PROHIBITION, context108, entity108, action108, aConstraint108, dConstraint108);
-		normSet.add(norm108);
 		
 		
 		/************************************************************************************/
 		//TODO case3
 		/************************************************************************************/
+		
 		Context context110 = new Context("home", ContextType.ORGANIZATION);
 		Entity entity110 = new Entity ("person", EntityType.ROLE);
 		BehaviorMultipleParameters action110 = new BehaviorMultipleParameters("dress");
-		action110.addElement("color","white");
-		action110.addElement("ironingtype","ironing");
-		action110.addElement("picture", "smooth");
+		action110.addElement(SetUtil.COLORFUL,null);
 		Constraint aConstraint110 = null; 
 		Constraint dConstraint110 = null; 
 		Norm norm110 = new Norm(110, DeonticConcept.OBLIGATION, context110, entity110, action110, aConstraint110, dConstraint110);
@@ -383,9 +314,7 @@ public class TestAllConflicts {
 		Context context111 = new Context("home", ContextType.ORGANIZATION);
 		Entity entity111 = new Entity ("person", EntityType.ROLE);
 		BehaviorMultipleParameters action111 = new BehaviorMultipleParameters("dress");
-		action111.addElement("color","black");
-		action111.addElement("ironingtype","ironing");
-		action111.addElement("picture", "smooth");
+		action111.addElement(SetUtil.COLORFUL,null);
 		Constraint aConstraint111 = null; 
 		Constraint dConstraint111 = null; 
 		Norm norm111 = new Norm(111, DeonticConcept.PERMISSION, context111, entity111, action111, aConstraint111, dConstraint111);
@@ -394,18 +323,478 @@ public class TestAllConflicts {
 		Context context112 = new Context("home", ContextType.ORGANIZATION);
 		Entity entity112 = new Entity ("person", EntityType.ROLE);
 		BehaviorMultipleParameters action112 = new BehaviorMultipleParameters("dress");
-		action112.addElement("color","blue");
-		action112.addElement("ironingtype","ironing");
-		action112.addElement("picture", "smooth");
+		action112.addElement(SetUtil.COLORFUL,null);
 		Constraint aConstraint112 = null; 
 		Constraint dConstraint112 = null; 
 		Norm norm112 = new Norm(112, DeonticConcept.PROHIBITION, context112, entity112, action112, aConstraint112, dConstraint112);
 		normSet.add(norm112);
 		
 		
+		/************************************************************************************/
+		//TODO case4 		//130 a 160
+		/************************************************************************************/
+		
+		Context context131 = new Context("home", ContextType.ORGANIZATION);
+		Entity entity131 = new Entity ("person", EntityType.ROLE);
+		BehaviorMultipleParameters action131 = new BehaviorMultipleParameters("dress");
+		action131.addElement("color","white");
+		action131.addElement("picture", "smooth");
+		action131.addElement("ironingtype", "ironing");
+		Constraint aConstraint131 = null; 
+		Constraint dConstraint131 = null; 
+		Norm norm131 = new Norm(131, DeonticConcept.OBLIGATION, context131, entity131, action131, aConstraint131, dConstraint131);
+		normSet.add(norm131);
+		
+		Context context132 = new Context("home", ContextType.ORGANIZATION);
+		Entity entity132 = new Entity ("person", EntityType.ROLE);
+		BehaviorMultipleParameters action132 = new BehaviorMultipleParameters("dress");
+		action132.addElement("color","white");
+		action132.addElement("picture", "vertical");
+		action132.addElement("ironingtype", "ironing");
+		Constraint aConstraint132 = null; 
+		Constraint dConstraint132 = null; 
+		Norm norm132 = new Norm(132, DeonticConcept.PROHIBITION, context132, entity132, action132, aConstraint132, dConstraint132);
+		normSet.add(norm132);
+
+		Context context133 = new Context("home", ContextType.ORGANIZATION);
+		Entity entity133 = new Entity ("person", EntityType.ROLE);
+		BehaviorMultipleParameters action133 = new BehaviorMultipleParameters("dress");
+		action133.addElement("color","black");
+		action133.addElement("picture", "horizontal");
+		action133.addElement("ironingtype", "ironing");
+		Constraint aConstraint133 = null; 
+		Constraint dConstraint133 = null; 
+		Norm norm133 = new Norm(133, DeonticConcept.PROHIBITION, context133, entity133, action133, aConstraint133, dConstraint133);
+		normSet.add(norm133);
+				
+		Context context134 = new Context("home", ContextType.ORGANIZATION);
+		Entity entity134 = new Entity ("person", EntityType.ROLE);
+		BehaviorMultipleParameters action134 = new BehaviorMultipleParameters("dress");
+		action134.addElement("color", "black");
+		action134.addElement("picture", "smooth");
+		action134.addElement("ironingtype", "ironing");
+		Constraint aConstraint134 = null; 
+		Constraint dConstraint134 = null; 
+		Norm norm134 = new Norm(134, DeonticConcept.OBLIGATION, context134, entity134, action134, aConstraint134, dConstraint134);
+		normSet.add(norm134);
+		
+		Context context135 = new Context("home", ContextType.ORGANIZATION);
+		Entity entity135 = new Entity ("person", EntityType.ROLE);
+		BehaviorMultipleParameters action135 = new BehaviorMultipleParameters("dress");
+		action135.addElement("garment","pant");
+		action135.addElement("color", "yellow");
+		action135.addElement("picture", "smooth");
+		action135.addElement("ironingtype", "ironing");
+		Constraint aConstraint135 = null; 
+		Constraint dConstraint135 = null; 
+		Norm norm135 = new Norm(135, DeonticConcept.PERMISSION, context135, entity135, action135, aConstraint135, dConstraint135);
+		normSet.add(norm135);
+		
+		Context context141 = new Context("home", ContextType.ORGANIZATION);
+		Entity entity141 = new Entity ("person", EntityType.ROLE);
+		BehaviorMultipleParameters action141 = new BehaviorMultipleParameters("dress");
+		action141.addElement("color","white");
+		action141.addElement("picture", "smooth");
+		action141.addElement("ironingtype", "crumpled");
+		Constraint aConstraint141 = null; 
+		Constraint dConstraint141 = null; 
+		Norm norm141 = new Norm(141, DeonticConcept.OBLIGATION, context141, entity141, action141, aConstraint141, dConstraint141);
+		normSet.add(norm141);
+		
+		Context context142 = new Context("home", ContextType.ORGANIZATION);
+		Entity entity142 = new Entity ("person", EntityType.ROLE);
+		BehaviorMultipleParameters action142 = new BehaviorMultipleParameters("dress");
+		action142.addElement("color","blue");
+		action142.addElement("picture", "vertical");
+		action142.addElement("ironingtype", "crumpled");
+		Constraint aConstraint142 = null; 
+		Constraint dConstraint142 = null; 
+		Norm norm142 = new Norm(142, DeonticConcept.PROHIBITION, context142, entity142, action142, aConstraint142, dConstraint142);
+		normSet.add(norm142);
+
+		Context context143 = new Context("home", ContextType.ORGANIZATION);
+		Entity entity143 = new Entity ("person", EntityType.ROLE);
+		BehaviorMultipleParameters action143 = new BehaviorMultipleParameters("dress");
+		action143.addElement("color","black");
+		action143.addElement("picture", "horizontal");
+		action143.addElement("ironingtype", "crumpled");
+		Constraint aConstraint143 = null; 
+		Constraint dConstraint143 = null; 
+		Norm norm143 = new Norm(143, DeonticConcept.PROHIBITION, context143, entity143, action143, aConstraint143, dConstraint143);
+		normSet.add(norm143);
+				
+		Context context144 = new Context("home", ContextType.ORGANIZATION);
+		Entity entity144 = new Entity ("person", EntityType.ROLE);
+		BehaviorMultipleParameters action144 = new BehaviorMultipleParameters("dress");
+		action144.addElement("color", "blue");
+		action144.addElement("picture", "smooth");
+		action144.addElement("ironingtype", "crumpled");
+		Constraint aConstraint144 = null; 
+		Constraint dConstraint144 = null; 
+		Norm norm144 = new Norm(144, DeonticConcept.OBLIGATION, context144, entity144, action144, aConstraint144, dConstraint144);
+		normSet.add(norm144);
+		
+		/*
+		Context context145 = new Context("home", ContextType.ORGANIZATION);
+		Entity entity145 = new Entity ("person", EntityType.ROLE);
+		BehaviorMultipleParameters action145 = new BehaviorMultipleParameters("dress");
+		action145.addElement("color", "yellow");
+		action145.addElement("picture", "smooth");
+		action145.addElement("ironingtype", "crumpled");
+		Constraint aConstraint145 = null; 
+		Constraint dConstraint145 = null; 
+		Norm norm145 = new Norm(145, DeonticConcept.PERMISSION, context145, entity145, action145, aConstraint145, dConstraint145);
+		normSet.add(norm145);
+		
+		Context context146 = new Context("home", ContextType.ORGANIZATION);
+		Entity entity146 = new Entity ("person", EntityType.ROLE);
+		BehaviorMultipleParameters action146 = new BehaviorMultipleParameters("dress");
+		action146.addElement("color","white");
+		action146.addElement("picture", "horizontal");
+		action146.addElement("ironingtype", "crumpled");
+		Constraint aConstraint146 = null; 
+		Constraint dConstraint146 = null; 
+		Norm norm146 = new Norm(146, DeonticConcept.OBLIGATION, context146, entity146, action146, aConstraint146, dConstraint146);
+		normSet.add(norm146);
+		
+		Context context147 = new Context("home", ContextType.ORGANIZATION);
+		Entity entity147 = new Entity ("person", EntityType.ROLE);
+		BehaviorMultipleParameters action147 = new BehaviorMultipleParameters("dress");
+		action147.addElement("color","blue");
+		action147.addElement("picture", "vertical");
+		action147.addElement("ironingtype", "crumpled");
+		Constraint aConstraint147 = null; 
+		Constraint dConstraint147 = null; 
+		Norm norm147 = new Norm(147, DeonticConcept.PROHIBITION, context147, entity147, action147, aConstraint147, dConstraint147);
+		normSet.add(norm147);
+
+		Context context148 = new Context("home", ContextType.ORGANIZATION);
+		Entity entity148 = new Entity ("person", EntityType.ROLE);
+		BehaviorMultipleParameters action148 = new BehaviorMultipleParameters("dress");
+		action148.addElement("color","black");
+		action148.addElement("picture", "gust");
+		action148.addElement("ironingtype", "crumpled");
+		Constraint aConstraint148 = null; 
+		Constraint dConstraint148 = null; 
+		Norm norm148 = new Norm(148, DeonticConcept.PROHIBITION, context148, entity148, action148, aConstraint148, dConstraint148);
+		normSet.add(norm148);
+				
+		Context context149 = new Context("home", ContextType.ORGANIZATION);
+		Entity entity149 = new Entity ("person", EntityType.ROLE);
+		BehaviorMultipleParameters action149 = new BehaviorMultipleParameters("dress");
+		action149.addElement("color", "blue");
+		action149.addElement("picture", "gust");
+		action149.addElement("ironingtype", "crumpled");
+		Constraint aConstraint149 = null; 
+		Constraint dConstraint149 = null; 
+		Norm norm149 = new Norm(149, DeonticConcept.OBLIGATION, context149, entity149, action149, aConstraint149, dConstraint149);
+		normSet.add(norm149);
+		*/
+		/************************************************************************************/
+		//TODO case5 170 to 200
+		/************************************************************************************/
+		
+		Context context171 = new Context("home", ContextType.ORGANIZATION);
+		Entity entity171 = new Entity ("person", EntityType.ROLE);
+		BehaviorMultipleParameters action171 = new BehaviorMultipleParameters("dress","shirt");
+		action171.addElement(SetUtil.COLORFUL, null);
+		action171.addElement(SetUtil.IRONING_STATE, null);
+		action171.addElement(SetUtil.PICTURED, null);
+		Constraint aConstraint171 = null; 
+		Constraint dConstraint171 = null; 
+		Norm norm171 = new Norm(171, DeonticConcept.OBLIGATION, context171, entity171, action171, aConstraint171, dConstraint171);
+		normSet.add(norm171);
+		
+		Context context172 = new Context("home", ContextType.ORGANIZATION);
+		Entity entity172 = new Entity ("person", EntityType.ROLE);
+		BehaviorMultipleParameters action172 = new BehaviorMultipleParameters("dress","shirt");
+		action172.addElement(SetUtil.COLORFUL, null);
+		action172.addElement(SetUtil.IRONING_STATE, null);
+		action172.addElement(SetUtil.PICTURED, null);
+		Constraint aConstraint172 = null; 
+		Constraint dConstraint172 = null; 
+		Norm norm172 = new Norm(172, DeonticConcept.PROHIBITION, context172, entity172, action172, aConstraint172, dConstraint172);
+		normSet.add(norm172);
+
+		Context context173 = new Context("home", ContextType.ORGANIZATION);
+		Entity entity173 = new Entity ("person", EntityType.ROLE);
+		BehaviorMultipleParameters action173 = new BehaviorMultipleParameters("dress","pant");
+		action173.addElement(SetUtil.COLORFUL, null);
+		action173.addElement(SetUtil.IRONING_STATE, null);
+		action173.addElement(SetUtil.PICTURED, null);
+		Constraint aConstraint173 = null; 
+		Constraint dConstraint173 = null; 
+		Norm norm173 = new Norm(173, DeonticConcept.PERMISSION, context173, entity173, action173, aConstraint173, dConstraint173);
+		normSet.add(norm173);
+		
+		Context context174 = new Context("home", ContextType.ORGANIZATION);
+		Entity entity174 = new Entity ("person", EntityType.ROLE);
+		BehaviorMultipleParameters action174 = new BehaviorMultipleParameters("dress","shirt");
+		action174.addElement(SetUtil.COLORFUL, null);
+		action174.addElement(SetUtil.IRONING_STATE, null);
+		action174.addElement(SetUtil.PICTURED, null);
+		Constraint aConstraint174 = null; 
+		Constraint dConstraint174 = null; 
+		Norm norm174 = new Norm(174, DeonticConcept.PROHIBITION, context174, entity174, action174, aConstraint174, dConstraint174);
+		normSet.add(norm174);
+		
+		
+		
+		/*
+		Context context175 = new Context("home", ContextType.ORGANIZATION);
+		Entity entity175 = new Entity ("person", EntityType.ROLE);
+		BehaviorMultipleParameters action175 = new BehaviorMultipleParameters("dress","garment");
+		action175.addElement("garment","pant");
+		action175.addElement("color", ConflictChecker_APV.EQUAL);
+		action175.addElement("picture", "smooth");
+		action175.addElement("ironingtype", "ironing");
+		Constraint aConstraint175 = null; 
+		Constraint dConstraint175 = null; 
+		Norm norm175 = new Norm(175, DeonticConcept.PERMISSION, context175, entity175, action175, aConstraint175, dConstraint175);
+		normSet.add(norm175);
+		
+		
+		
+		Context context181 = new Context("home", ContextType.ORGANIZATION);
+		Entity entity181 = new Entity ("person", EntityType.ROLE);
+		BehaviorMultipleParameters action181 = new BehaviorMultipleParameters("dress","garment");
+		action181.addElement("garment","shirt");
+		action181.addElement("color","white");
+		action181.addElement("picture", "smooth");
+		action181.addElement("ironingtype", "crumpled");
+		Constraint aConstraint181 = null; 
+		Constraint dConstraint181 = null; 
+		Norm norm181 = new Norm(181, DeonticConcept.OBLIGATION, context181, entity181, action181, aConstraint181, dConstraint181);
+		normSet.add(norm181);
+		
+		Context context182 = new Context("home", ContextType.ORGANIZATION);
+		Entity entity182 = new Entity ("person", EntityType.ROLE);
+		BehaviorMultipleParameters action182 = new BehaviorMultipleParameters("dress","garment");
+		action182.addElement("garment","shirt");
+		action182.addElement("color","blue");
+		action182.addElement("picture", "vertical");
+		action182.addElement("ironingtype", "crumpled");
+		Constraint aConstraint182 = null; 
+		Constraint dConstraint182 = null; 
+		Norm norm182 = new Norm(182, DeonticConcept.PROHIBITION, context182, entity182, action182, aConstraint182, dConstraint182);
+		normSet.add(norm182);
+
+		Context context183 = new Context("home", ContextType.ORGANIZATION);
+		Entity entity183 = new Entity ("person", EntityType.ROLE);
+		BehaviorMultipleParameters action183 = new BehaviorMultipleParameters("dress","garment");
+		action183.addElement("garment","pant");
+		action183.addElement("color","black");
+		action183.addElement("picture", "horizontal");
+		action183.addElement("ironingtype", "crumpled");
+		Constraint aConstraint183 = null; 
+		Constraint dConstraint183 = null; 
+		Norm norm183 = new Norm(183, DeonticConcept.PROHIBITION, context183, entity183, action183, aConstraint183, dConstraint183);
+		normSet.add(norm183);
+				
+		Context context184 = new Context("home", ContextType.ORGANIZATION);
+		Entity entity184 = new Entity ("person", EntityType.ROLE);
+		BehaviorMultipleParameters action184 = new BehaviorMultipleParameters("dress","garment");
+		action184.addElement("garment","shirt");
+		action184.addElement("color", ConflictChecker_APV.EQUAL);
+		action184.addElement("picture", "smooth");
+		action184.addElement("ironingtype", "crumpled");
+		Constraint aConstraint184 = null; 
+		Constraint dConstraint184 = null; 
+		Norm norm184 = new Norm(184, DeonticConcept.OBLIGATION, context184, entity184, action184, aConstraint184, dConstraint184);
+		normSet.add(norm184);
+		
+		Context context185 = new Context("home", ContextType.ORGANIZATION);
+		Entity entity185 = new Entity ("person", EntityType.ROLE);
+		BehaviorMultipleParameters action185 = new BehaviorMultipleParameters("dress","garment");
+		action185.addElement("garment","pant");
+		action185.addElement("color", ConflictChecker_APV.EQUAL);
+		action185.addElement("picture", "smooth");
+		action185.addElement("ironingtype", "crumpled");
+		Constraint aConstraint185 = null; 
+		Constraint dConstraint185 = null; 
+		Norm norm185 = new Norm(185, DeonticConcept.PERMISSION, context185, entity185, action185, aConstraint185, dConstraint185);
+		normSet.add(norm185);
+		
+		Context context186 = new Context("home", ContextType.ORGANIZATION);
+		Entity entity186 = new Entity ("person", EntityType.ROLE);
+		BehaviorMultipleParameters action186 = new BehaviorMultipleParameters("dress","garment");
+		action186.addElement("garment","shirt");
+		action186.addElement("color","white");
+		action186.addElement("picture", "horizontal");
+		action186.addElement("ironingtype", "crumpled");
+		Constraint aConstraint186 = null; 
+		Constraint dConstraint186 = null; 
+		Norm norm186 = new Norm(186, DeonticConcept.OBLIGATION, context186, entity186, action186, aConstraint186, dConstraint186);
+		normSet.add(norm186);
+		
+		Context context187 = new Context("home", ContextType.ORGANIZATION);
+		Entity entity187 = new Entity ("person", EntityType.ROLE);
+		BehaviorMultipleParameters action187 = new BehaviorMultipleParameters("dress","garment");
+		action187.addElement("garment","shirt");
+		action187.addElement("color","blue");
+		action187.addElement("picture", "vertical");
+		action187.addElement("ironingtype", "crumpled");
+		Constraint aConstraint187 = null; 
+		Constraint dConstraint187 = null; 
+		Norm norm187 = new Norm(187, DeonticConcept.PROHIBITION, context187, entity187, action187, aConstraint187, dConstraint187);
+		normSet.add(norm187);
+
+		Context context188 = new Context("home", ContextType.ORGANIZATION);
+		Entity entity188 = new Entity ("person", EntityType.ROLE);
+		BehaviorMultipleParameters action188 = new BehaviorMultipleParameters("dress","garment");
+		action188.addElement("garment","pant");
+		action188.addElement("color","black");
+		action188.addElement("picture", "gust");
+		action188.addElement("ironingtype", "crumpled");
+		Constraint aConstraint188 = null; 
+		Constraint dConstraint188 = null; 
+		Norm norm188 = new Norm(188, DeonticConcept.PROHIBITION, context188, entity188, action188, aConstraint188, dConstraint188);
+		normSet.add(norm188);
+				
+		Context context189 = new Context("home", ContextType.ORGANIZATION);
+		Entity entity189 = new Entity ("person", EntityType.ROLE);
+		BehaviorMultipleParameters action189 = new BehaviorMultipleParameters("dress","garment");
+		action189.addElement("garment","shirt");
+		action189.addElement("color", ConflictChecker_APV.EQUAL);
+		action189.addElement("picture", "gust");
+		action189.addElement("ironingtype", "crumpled");
+		Constraint aConstraint189 = null; 
+		Constraint dConstraint189 = null; 
+		Norm norm189 = new Norm(189, DeonticConcept.OBLIGATION, context189, entity189, action189, aConstraint189, dConstraint189);
+		normSet.add(norm189);
+		
+		Context context190 = new Context("home", ContextType.ORGANIZATION);
+		Entity entity190 = new Entity ("person", EntityType.ROLE);
+		BehaviorMultipleParameters action190 = new BehaviorMultipleParameters("dress","garment");
+		action190.addElement("garment","pant");
+		action190.addElement("color", ConflictChecker_APV.EQUAL);
+		action190.addElement("picture", "vertical");
+		action190.addElement("ironingtype", "crumpled");
+		Constraint aConstraint190 = null; 
+		Constraint dConstraint190 = null; 
+		Norm norm190 = new Norm(190, DeonticConcept.PERMISSION, context190, entity190, action190, aConstraint190, dConstraint190);
+		normSet.add(norm190);
+		
+		Context context191 = new Context("home", ContextType.ORGANIZATION);
+		Entity entity191 = new Entity ("person", EntityType.ROLE);
+		BehaviorMultipleParameters action191 = new BehaviorMultipleParameters("dress","garment");
+		action191.addElement("garment","shirt");
+		action191.addElement("color","white");
+		action191.addElement("picture", "horizontal");
+		action191.addElement("ironingtype", "crumpled");
+		Constraint aConstraint191 = null; 
+		Constraint dConstraint191 = null; 
+		Norm norm191 = new Norm(191, DeonticConcept.PERMISSION, context191, entity191, action191, aConstraint191, dConstraint191);
+		normSet.add(norm191);
+		
+		Context context192 = new Context("home", ContextType.ORGANIZATION);
+		Entity entity192 = new Entity ("person", EntityType.ROLE);
+		BehaviorMultipleParameters action192 = new BehaviorMultipleParameters("dress","garment");
+		action192.addElement("garment","shirt");
+		action192.addElement("color","blue");
+		action192.addElement("picture", "vertical");
+		action192.addElement("ironingtype", "crumpled");
+		Constraint aConstraint192 = null; 
+		Constraint dConstraint192 = null; 
+		Norm norm192 = new Norm(192, DeonticConcept.PERMISSION, context192, entity192, action192, aConstraint192, dConstraint192);
+		normSet.add(norm192);
+
+		Context context193 = new Context("home", ContextType.ORGANIZATION);
+		Entity entity193 = new Entity ("person", EntityType.ROLE);
+		BehaviorMultipleParameters action193 = new BehaviorMultipleParameters("dress","garment");
+		action193.addElement("garment","pant");
+		action193.addElement("color","black");
+		action193.addElement("picture", "gust");
+		action193.addElement("ironingtype", "crumpled");
+		Constraint aConstraint193 = null; 
+		Constraint dConstraint193 = null; 
+		Norm norm193 = new Norm(193, DeonticConcept.PERMISSION, context193, entity193, action193, aConstraint193, dConstraint193);
+		normSet.add(norm193);
+				
+		Context context194 = new Context("home", ContextType.ORGANIZATION);
+		Entity entity194 = new Entity ("person", EntityType.ROLE);
+		BehaviorMultipleParameters action194 = new BehaviorMultipleParameters("dress","garment");
+		action194.addElement("garment","shirt");
+		action194.addElement("color", ConflictChecker_APV.EQUAL);
+		action194.addElement("picture", "gust");
+		action194.addElement("ironingtype", "crumpled");
+		Constraint aConstraint194 = null; 
+		Constraint dConstraint194 = null; 
+		Norm norm194 = new Norm(194, DeonticConcept.PROHIBITION, context194, entity194, action194, aConstraint194, dConstraint194);
+		normSet.add(norm194);
+		
+		Context context195 = new Context("home", ContextType.ORGANIZATION);
+		Entity entity195 = new Entity ("person", EntityType.ROLE);
+		BehaviorMultipleParameters action195 = new BehaviorMultipleParameters("dress","garment");
+		action195.addElement("garment","pant");
+		action195.addElement("color", ConflictChecker_APV.EQUAL);
+		action195.addElement("picture", "vertical");
+		action195.addElement("ironingtype", "crumpled");
+		Constraint aConstraint195 = null; 
+		Constraint dConstraint195 = null; 
+		Norm norm195 = new Norm(195, DeonticConcept.PROHIBITION, context195, entity195, action195, aConstraint195, dConstraint195);
+		normSet.add(norm195);
+		
+		//
+		
+		Context context196 = new Context("field", ContextType.ORGANIZATION);
+		Entity entity196 = new Entity ("player", EntityType.ROLE);
+		BehaviorMultipleParameters action196 = new BehaviorMultipleParameters("use","g");
+		action196.addElement("g","whistle");
+		action196.addElement("color","white");
+		action196.addElement("bodypart", "mouth");
+		Constraint aConstraint196 = null; 
+		Constraint dConstraint196 = null; 
+		Norm norm196 = new Norm(196, DeonticConcept.OBLIGATION, context196, entity196, action196, aConstraint196, dConstraint196);
+		normSet.add(norm196);
+		
+		Context context197 = new Context("field", ContextType.ORGANIZATION);
+		Entity entity197 = new Entity ("player", EntityType.ROLE);
+		BehaviorMultipleParameters action197 = new BehaviorMultipleParameters("use","g");
+		action197.addElement("g","shoes");
+		action197.addElement("color","red");
+		action197.addElement("bodypart", "foot");
+		Constraint aConstraint197 = null; 
+		Constraint dConstraint197 = null; 
+		Norm norm197 = new Norm(197, DeonticConcept.OBLIGATION, context197, entity197, action197, aConstraint197, dConstraint197);
+		normSet.add(norm197);
+		
+		Context context198 = new Context("field", ContextType.ORGANIZATION);
+		Entity entity198 = new Entity ("player", EntityType.ROLE);
+		BehaviorMultipleParameters action198 = new BehaviorMultipleParameters("use","g");
+		action198.addElement("g","whistle");
+		action198.addElement("color","blue");
+		action198.addElement("bodypart", "mouth");
+		Constraint aConstraint198 = null; 
+		Constraint dConstraint198 = null; 
+		Norm norm198 = new Norm(198, DeonticConcept.PROHIBITION, context198, entity198, action198, aConstraint198, dConstraint198);
+		normSet.add(norm198);
+		
+		Context context199 = new Context("field", ContextType.ORGANIZATION);
+		Entity entity199 = new Entity ("player", EntityType.ROLE);
+		BehaviorMultipleParameters action199 = new BehaviorMultipleParameters("use","g");
+		action199.addElement("g","whistle");
+		action199.addElement("color","red");
+		action199.addElement("bodypart", "mouth");
+		Constraint aConstraint199 = null; 
+		Constraint dConstraint199 = null; 
+		Norm norm199 = new Norm(199, DeonticConcept.PERMISSION, context199, entity199, action199, aConstraint199, dConstraint199);
+		normSet.add(norm199);
+		
+		Context context200 = new Context("field", ContextType.ORGANIZATION);
+		Entity entity200 = new Entity ("player", EntityType.ROLE);
+		BehaviorMultipleParameters action200 = new BehaviorMultipleParameters("use","g");
+		action200.addElement("g","whistle");
+		action200.addElement("color","white");
+		action200.addElement("bodypart", ConflictChecker_APV.EQUAL);
+		Constraint aConstraint200 = null; 
+		Constraint dConstraint200 = null; 
+		Norm norm200 = new Norm(200, DeonticConcept.OBLIGATION, context200, entity200, action200, aConstraint200, dConstraint200);
+		normSet.add(norm200);*/
+		
 		
 		/************************************************************************************/
-		//TODO case4
+		//TODO case6
 		/************************************************************************************/
 		
 		Context context201 = new Context("home", ContextType.ORGANIZATION);
@@ -444,7 +833,7 @@ public class TestAllConflicts {
 		Context context204 = new Context("home", ContextType.ORGANIZATION);
 		Entity entity204 = new Entity ("person", EntityType.ROLE);
 		BehaviorMultipleParameters action204 = new BehaviorMultipleParameters("dress","shirt");
-		action204.addElement("color", ConflictCheckerActionApproach4.EQUAL);
+		action204.addElement("color", SetUtil.EQUAL);
 		action204.addElement("picture", "smooth");
 		action204.addElement("ironingtype", "ironing");
 		Constraint aConstraint204 = null; 
@@ -704,6 +1093,194 @@ public class TestAllConflicts {
 		Constraint dConstraint324 = null; 
 		Norm norm324 = new Norm(324, DeonticConcept.OBLIGATION, context324, entity324, action324, aConstraint324, dConstraint324);
 		normSet.add(norm324);*/
+		
+		return normSet;
+	}
+	
+	private static List<Norm> buildSomeNorms2() {
+		List<Norm> normSet = new ArrayList<>();
+		
+		/************************************************************************************/
+		//TODO case1
+		/************************************************************************************/
+		
+		Context context1 = new Context("home", ContextType.ORGANIZATION);
+		Entity entity1 = new Entity ("person", EntityType.ROLE);
+		BehaviorMultipleParameters action1 = new BehaviorMultipleParameters("dress");
+		Constraint aConstraint1 = null; 
+		Constraint dConstraint1 = null; 
+		Norm norm1 = new Norm(1,DeonticConcept.OBLIGATION, context1, entity1, action1, aConstraint1, dConstraint1);
+		normSet.add(norm1);
+		
+		Context context2 = new Context("home", ContextType.ORGANIZATION);
+		Entity entity2 = new Entity ("person", EntityType.ROLE);
+		BehaviorMultipleParameters action2 = new BehaviorMultipleParameters("dress");
+		Constraint aConstraint2 = null; 
+		Constraint dConstraint2 = null; 
+		Norm norm2 = new Norm(2,DeonticConcept.PROHIBITION, context2, entity2, action2, aConstraint2, dConstraint2);
+		normSet.add(norm2);
+		
+
+		
+		
+		/************************************************************************************/
+		//TODO case2
+		/************************************************************************************/
+		
+		Context context101 = new Context("home", ContextType.ORGANIZATION);
+		Entity entity101 = new Entity ("person", EntityType.ROLE);
+		BehaviorMultipleParameters action101 = new BehaviorMultipleParameters("dress", "shirt");
+		Constraint aConstraint101 = null; 
+		Constraint dConstraint101 = null; 
+		Norm norm101 = new Norm(101, DeonticConcept.PERMISSION, context101, entity101, action101, aConstraint101, dConstraint101);
+		normSet.add(norm101);
+		
+		Context context102 = new Context("home", ContextType.ORGANIZATION);
+		Entity entity102 = new Entity ("person", EntityType.ROLE);
+		BehaviorMultipleParameters action102 = new BehaviorMultipleParameters("dress", "shirt");
+		Constraint aConstraint102 = null; 
+		Constraint dConstraint102 = null; 
+		Norm norm102 = new Norm(102, DeonticConcept.PROHIBITION, context102, entity102, action102, aConstraint102, dConstraint102);
+		normSet.add(norm102);
+		
+		
+		
+		/************************************************************************************/
+		//TODO case3
+		/************************************************************************************/
+		
+		Context context110 = new Context("home", ContextType.ORGANIZATION);
+		Entity entity110 = new Entity ("person", EntityType.ROLE);
+		BehaviorMultipleParameters action110 = new BehaviorMultipleParameters("dress");
+		action110.addElement(SetUtil.COLORFUL,null);
+		Constraint aConstraint110 = null; 
+		Constraint dConstraint110 = null; 
+		Norm norm110 = new Norm(110, DeonticConcept.OBLIGATION, context110, entity110, action110, aConstraint110, dConstraint110);
+		normSet.add(norm110);
+		
+		Context context111 = new Context("home", ContextType.ORGANIZATION);
+		Entity entity111 = new Entity ("person", EntityType.ROLE);
+		BehaviorMultipleParameters action111 = new BehaviorMultipleParameters("dress");
+		action111.addElement(SetUtil.COLORFUL,null);
+		Constraint aConstraint111 = null; 
+		Constraint dConstraint111 = null; 
+		Norm norm111 = new Norm(111, DeonticConcept.PROHIBITION, context111, entity111, action111, aConstraint111, dConstraint111);
+		normSet.add(norm111);
+		
+
+		
+		/************************************************************************************/
+		//TODO case4 		//130 a 160
+		/************************************************************************************/
+		
+		Context context131 = new Context("home", ContextType.ORGANIZATION);
+		Entity entity131 = new Entity ("person", EntityType.ROLE);
+		BehaviorMultipleParameters action131 = new BehaviorMultipleParameters("dress");
+		action131.addElement("color","white");
+		action131.addElement("picture", "smooth");
+		action131.addElement("ironingtype", "ironing");
+		Constraint aConstraint131 = null; 
+		Constraint dConstraint131 = null; 
+		Norm norm131 = new Norm(131, DeonticConcept.OBLIGATION, context131, entity131, action131, aConstraint131, dConstraint131);
+		normSet.add(norm131);
+		
+		Context context132 = new Context("home", ContextType.ORGANIZATION);
+		Entity entity132 = new Entity ("person", EntityType.ROLE);
+		BehaviorMultipleParameters action132 = new BehaviorMultipleParameters("dress");
+		action132.addElement("color","white");
+		action132.addElement("picture", "vertical");
+		action132.addElement("ironingtype", "ironing");
+		Constraint aConstraint132 = null; 
+		Constraint dConstraint132 = null; 
+		Norm norm132 = new Norm(132, DeonticConcept.PROHIBITION, context132, entity132, action132, aConstraint132, dConstraint132);
+		normSet.add(norm132);
+		
+		/************************************************************************************/
+		//TODO case5
+		/************************************************************************************/
+		
+		Context context171 = new Context("home", ContextType.ORGANIZATION);
+		Entity entity171 = new Entity ("person", EntityType.ROLE);
+		BehaviorMultipleParameters action171 = new BehaviorMultipleParameters("dress","shirt");
+		action171.addElement(SetUtil.COLORFUL, null);
+		action171.addElement(SetUtil.IRONING_STATE, null);
+		action171.addElement(SetUtil.PICTURED, null);
+		Constraint aConstraint171 = null; 
+		Constraint dConstraint171 = null; 
+		Norm norm171 = new Norm(171, DeonticConcept.OBLIGATION, context171, entity171, action171, aConstraint171, dConstraint171);
+		normSet.add(norm171);
+		
+		Context context172 = new Context("home", ContextType.ORGANIZATION);
+		Entity entity172 = new Entity ("person", EntityType.ROLE);
+		BehaviorMultipleParameters action172 = new BehaviorMultipleParameters("dress","shirt");
+		action172.addElement(SetUtil.COLORFUL, null);
+		action172.addElement(SetUtil.IRONING_STATE, null);
+		action172.addElement(SetUtil.PICTURED, null);
+		Constraint aConstraint172 = null; 
+		Constraint dConstraint172 = null; 
+		Norm norm172 = new Norm(172, DeonticConcept.PROHIBITION, context172, entity172, action172, aConstraint172, dConstraint172);
+		normSet.add(norm172);
+		
+		Context context173 = new Context("home", ContextType.ORGANIZATION);
+		Entity entity173 = new Entity ("person", EntityType.ROLE);
+		BehaviorMultipleParameters action173 = new BehaviorMultipleParameters("dress","pant");
+		action173.addElement(SetUtil.COLORFUL, null);
+		action173.addElement(SetUtil.IRONING_STATE, null);
+		action173.addElement(SetUtil.PICTURED, null);
+		Constraint aConstraint173 = null; 
+		Constraint dConstraint173 = null; 
+		Norm norm173 = new Norm(173, DeonticConcept.PERMISSION, context173, entity173, action173, aConstraint173, dConstraint173);
+		normSet.add(norm173);
+		
+		
+		
+		/************************************************************************************/
+		//TODO case6
+		/************************************************************************************/
+		
+		Context context201 = new Context("home", ContextType.ORGANIZATION);
+		Entity entity201 = new Entity ("person", EntityType.ROLE);
+		BehaviorMultipleParameters action201 = new BehaviorMultipleParameters("dress","shirt");
+		action201.addElement("color","white");
+		action201.addElement("picture", "smooth");
+		action201.addElement("ironingtype", "ironing");
+		Constraint aConstraint201 = null; 
+		Constraint dConstraint201 = null; 
+		Norm norm201 = new Norm(201, DeonticConcept.OBLIGATION, context201, entity201, action201, aConstraint201, dConstraint201);
+		normSet.add(norm201);
+		
+		Context context202 = new Context("home", ContextType.ORGANIZATION);
+		Entity entity202 = new Entity ("person", EntityType.ROLE);
+		BehaviorMultipleParameters action202 = new BehaviorMultipleParameters("dress","shirt");
+		action202.addElement("color","blue");
+		action202.addElement("picture", "vertical");
+		action202.addElement("ironingtype", "ironing");
+		Constraint aConstraint202 = null; 
+		Constraint dConstraint202 = null; 
+		Norm norm202 = new Norm(202, DeonticConcept.PROHIBITION, context202, entity202, action202, aConstraint202, dConstraint202);
+		normSet.add(norm202);
+		
+		Context context203 = new Context("home", ContextType.ORGANIZATION);
+		Entity entity203 = new Entity ("person", EntityType.ROLE);
+		BehaviorMultipleParameters action203 = new BehaviorMultipleParameters("dress","pant");
+		action203.addElement("color","black");
+		action203.addElement("picture", "horizontal");
+		action203.addElement("ironingtype", "ironing");
+		Constraint aConstraint203 = null; 
+		Constraint dConstraint203 = null; 
+		Norm norm203 = new Norm(203, DeonticConcept.PROHIBITION, context203, entity203, action203, aConstraint203, dConstraint203);
+		normSet.add(norm203);
+		
+		Context context204 = new Context("home", ContextType.ORGANIZATION);
+		Entity entity204 = new Entity ("person", EntityType.ROLE);
+		BehaviorMultipleParameters action204 = new BehaviorMultipleParameters("dress","shirt");
+		action204.addElement("color", SetUtil.EQUAL);
+		action204.addElement("picture", "smooth");
+		action204.addElement("ironingtype", "ironing");
+		Constraint aConstraint204 = null; 
+		Constraint dConstraint204 = null; 
+		Norm norm204 = new Norm(204, DeonticConcept.OBLIGATION, context204, entity204, action204, aConstraint204, dConstraint204);
+		normSet.add(norm204);
 		
 		return normSet;
 	}

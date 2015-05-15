@@ -74,6 +74,9 @@ public class BehaviorMultipleParameters implements Serializable {
 	}
 
 	public void addSetOfElements(String key, Set<String> set) {
+		if (set != null && set.isEmpty()) {
+			this.addElement(key, "");
+		}
 		for (String value : set) {
 			this.addElement(key, value);
 		}
